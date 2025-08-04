@@ -39,25 +39,65 @@ def main():
     try:
         print("抽出を開始します...")
         
-        # シンプルな英語の例に変更（JSONパースエラーを回避）
+        # 日本語の例（様々な日時パターンを含む）
         examples = [
+            # 基本的な例
             lx.data.ExampleData(
-                text="John Smith attended the Tech Conference in Tokyo on January 15, 2023.",
+                text="山田太郎さんが東京で開催される技術カンファレンスに2023年1月15日に参加しました。",
                 extractions=[
-                    lx.data.Extraction(extraction_class="person", extraction_text="John Smith"),
-                    lx.data.Extraction(extraction_class="event", extraction_text="Tech Conference"),
-                    lx.data.Extraction(extraction_class="location", extraction_text="Tokyo"),
-                    lx.data.Extraction(extraction_class="date", extraction_text="January 15, 2023")
+                    lx.data.Extraction(extraction_class="person", extraction_text="山田太郎"),
+                    lx.data.Extraction(extraction_class="event", extraction_text="技術カンファレンス"),
+                    lx.data.Extraction(extraction_class="location", extraction_text="東京"),
+                    lx.data.Extraction(extraction_class="date", extraction_text="2023年1月15日")
+                ]
+            ),
+            # 日時まで含まれる形式
+            lx.data.ExampleData(
+                text="次回のミーティングは2025年6月28日（土）21:00から開始します。",
+                extractions=[
+                    lx.data.Extraction(extraction_class="event", extraction_text="ミーティング"),
+                    lx.data.Extraction(extraction_class="date", extraction_text="2025年6月28日（土）21:00")
+                ]
+            ),
+            # 範囲がある形式
+            lx.data.ExampleData(
+                text="夏季セールは6月28日（土）21:00 ～ 7月6日（日）23:59まで実施されます。",
+                extractions=[
+                    lx.data.Extraction(extraction_class="event", extraction_text="夏季セール"),
+                    lx.data.Extraction(extraction_class="date", extraction_text="6月28日（土）21:00 ～ 7月6日（日）23:59")
+                ]
+            ),
+            # 特殊な形式（開場・開演など）
+            lx.data.ExampleData(
+                text="コンサートの詳細：開催日は2025年9月10日（水）、開場17:00、配信開場18:00、開演18:30です。",
+                extractions=[
+                    lx.data.Extraction(extraction_class="event", extraction_text="コンサート"),
+                    lx.data.Extraction(extraction_class="date", extraction_text="2025年9月10日（水）"),
+                    lx.data.Extraction(extraction_class="date", extraction_text="開場17:00"),
+                    lx.data.Extraction(extraction_class="date", extraction_text="配信開場18:00"),
+                    lx.data.Extraction(extraction_class="date", extraction_text="開演18:30")
                 ]
             )
         ]
         
+        # プロンプトに明示的な指示を追加して、会話の継続ではないことを明確にする
+        enhanced_prompt = """これは新しいタスクです。以下のテキストから人物、イベント、場所、日付を抽出してください。
+        
+注意: これは独立したタスクであり、前の会話とは関係ありません。"""
+        
         result = lx.extract(
             text_or_documents=input_text,
-            prompt_description="Extract people, events, locations, and dates from the text.",
-            examples=examples,
+            prompt_description=enhanced_prompt,
+            examples=examples[:2],  # examplesの数を減らして誤解を防ぐ
             model_id="gemini-2.5-flash"
         )
+
+         # resultは単一のAnnotatedDocumentオブジェクト
+        if hasattr(result, 'extractions') and result.extractions:
+            for extraction in result.extractions:
+                print(f"- {extraction.extraction_class}: {extraction.extraction_text}")
+        else:
+            print("（抽出された情報はありません）")
         
         # 結果を保存
         output_file = "output.jsonl"
@@ -80,12 +120,7 @@ def main():
         print("\n抽出された情報:")
         print("-" * 50)
         
-        # resultは単一のAnnotatedDocumentオブジェクト
-        if hasattr(result, 'extractions') and result.extractions:
-            for extraction in result.extractions:
-                print(f"- {extraction.extraction_class}: {extraction.extraction_text}")
-        else:
-            print("（抽出された情報はありません）")
+       
         
     except Exception as e:
         print(f"エラー: 抽出処理中にエラーが発生しました: {e}")
