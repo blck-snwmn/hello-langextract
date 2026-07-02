@@ -18,21 +18,9 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Detect Python version
-        id: python
-        shell: bash
-        run: |
-          if [[ -f .python-version ]]; then
-            python_version="$(tr -d '[:space:]' < .python-version)"
-          else
-            python_version="3.13"
-          fi
-
-          echo "version=${python_version}" >> "${GITHUB_OUTPUT}"
-
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
-          python-version: ${{ steps.python.outputs.version }}
+          python-version-file: .python-version
 
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
         with:
