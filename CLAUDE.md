@@ -33,7 +33,7 @@ uv sync
 
 The project is a single-module Python application with the following key files:
 - `main.py` - Entry point of the application
-- `pyproject.toml` - Project configuration and dependencies
+- `pyproject.toml` - Project configuration and dependencies (`[tool.uv] exclude-newer = "7 days"` only resolves packages published at least 7 days ago)
 - `uv.lock` - Locked dependency versions
 - `.python-version` - Pins Python 3.14.8 (`requires-python = ">=3.14"`)
 - `aqua.yaml` - Pins CLI tools including uv (CI installs uv via aqua, then Python via `uv python install`)
